@@ -1,6 +1,7 @@
-package aliyun
+package main
 
 import (
+	"aliyun/ut"
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
@@ -9,10 +10,11 @@ import (
 	"math"
 	"os"
 )
-var Size = 10*1024*1024
+var Size int
 var Authorization string
 var Fileinfo FileInfo
-// 获取文件相关信息
+
+// GetInfo 获取文件相关信息
 func GetInfo(filePath string) *FileInfo {
 	// 打开文件
 	fileObj,fileErr :=os.Open(filePath)
@@ -27,15 +29,16 @@ func GetInfo(filePath string) *FileInfo {
 	chunk_size :=float64(Size)
 	//获取块数量
 	chunk :=int(math.Ceil(file_flo/chunk_size))
-	// 获取文件1k大小的sha1
-	//Fileinfo.FileId = GetSha1k(fileObj)
+	log.Println("正在计算文件的sha1....")
 	h :=sha1.New()
 	_,ioError :=io.Copy(h,fileObj)
 	if ioError != nil {
+		log.Println("io出错")
 		return nil
 	}
 	//获取到的文件少了1k......
 	fileSha1 :=fmt.Sprintf("%x",h.Sum(nil))
+	log.Printf("sha1计算成功:%s",fileSha1)
 	// 赋值给结构体
 	Fileinfo.FileId = "root"
 	Fileinfo.FileName = fileStat.Name()
@@ -45,10 +48,16 @@ func GetInfo(filePath string) *FileInfo {
 	defer fileObj.Close()
 	return &Fileinfo
 }
-//获取access_token
+
+// GetToken 获取access_token
 func GetToken(refresh *Refresh) *UserInfo {
 	var postdata UserInfo
-	data :=PostNet(refresh,"https://auth.aliyundrive.com/v2/account/token")
+	data,code := ut.PostNet(refresh,"https://auth.aliyundrive.com/v2/account/token")
+	//判断返回的状态码
+	if code !=200{
+		log.Printf("获取access_token异常:%s",string(data))
+		os.Exit(1)
+	}
 	err :=json.Unmarshal(data,&postdata)
 	if err != nil {
 		log.Printf("json序列化失败:%v",err)
@@ -57,7 +66,8 @@ func GetToken(refresh *Refresh) *UserInfo {
 	Authorization = postdata.AccessToken
 	return &postdata
 }
-//获取上传地址
+
+// GetUploadUrl 获取上传地址
 func GetUploadUrl(refresh *Refresh) *CreateData {
 	//构建需要post的信息
 	t :=GetToken(refresh)
@@ -87,7 +97,11 @@ func GetUploadUrl(refresh *Refresh) *CreateData {
 	a.Type = "file"
 	//文件大小
 	a.Size = int(Fileinfo.FileSize)
-	dirfile :=PostNet(a,"https://api.aliyundrive.com/v2/file/create",Authorization)
+	dirfile,_ := ut.PostNet(a,"https://api.aliyundrive.com/v2/file/create",Authorization)
+	//if code !=200{
+	//	log.Printf("获取上传地址服务器地址异常:%s",string(dirfile))
+	//	os.Exit(1)
+	//}
 	var v CreateData
 	_=json.Unmarshal(dirfile, &v)
 	return &v

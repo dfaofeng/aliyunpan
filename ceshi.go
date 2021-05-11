@@ -1,5 +1,5 @@
-package aliyun
+package main
 
 func main() {
-	Upload("E://yidong/2021-04-17 21-56-34.mp4")
+	Upload()
 }

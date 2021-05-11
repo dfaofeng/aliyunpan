@@ -1,17 +1,19 @@
-package aliyun
+package main
 
 import (
 	"os"
 	"time"
 )
-// 文件相关的结构体
+
+// FileInfo 文件相关的结构体
 type FileInfo struct {
 	FileSize int64
 	FileSha1,FileName,FileId string
 	Part int
 	FileObj *os.File
 }
-//用户信息结构体
+
+// UserInfo 用户信息结构体
 type UserInfo struct {
 	AccessToken        string    `json:"access_token"`
 	Avatar             string    `json:"avatar"`
@@ -52,12 +54,14 @@ type UserInfo struct {
 	UserID   string `json:"user_id"`
 	UserName string `json:"user_name"`
 }
-//refresh_token结构体
+
+// Refresh refresh_token结构体
 type Refresh struct {
 	RefreshToken string `json:"refresh_token"`
 	TokenType string `json:"grant_type"`
 }
-//创建文件结构体
+
+// Create 创建文件结构体
 type Create struct {
 	CheckNameMode   string `json:"check_name_mode"`
 	ContentHash     string `json:"content_hash"`
@@ -69,7 +73,8 @@ type Create struct {
 	Size int    `json:"size"`
 	Type string `json:"type"`
 }
-//创建文件返回结构体
+
+// CreateData 创建文件返回结构体
 type CreateData struct {
 	DomainID     string `json:"domain_id"`
 	DriveID      string `json:"drive_id"`
@@ -83,11 +88,15 @@ type CreateData struct {
 	Type        string `json:"type"`
 	UploadID    string `json:"upload_id"`
 }
-//yaml解析结构体
+
+// Info yaml解析结构体
 type Info struct {
 	RefreshToken string `yaml:"refresh_token"`
+	Path string `yaml:"path"`
+	Chunk int `yaml:"chunk"`
 }
-//保存文件file结构体
+
+// SvData 保存文件file结构体
 type SvData struct {
 	DriveID  string `json:"drive_id"`
 	FileID   string `json:"file_id"`
